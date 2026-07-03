@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const REGION = process.env.AWS_REGION || 'eu-north-1';
+const REGION = process.env.HARNESS_REGION || 'eu-north-1';
 const HARNESS_ARN = process.env.HARNESS_ARN!;
 const MODEL_ID = process.env.BEDROCK_MODEL_ID || 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0';
 
