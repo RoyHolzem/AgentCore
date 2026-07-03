@@ -1,17 +1,42 @@
-.app {
+.shell {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  max-width: 820px;
+  height: 100dvh;
+  max-width: 720px;
   margin: 0 auto;
+  position: relative;
+}
+
+/* Ambient glow */
+.shell::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse at center, var(--accent-glow), transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
 }
 
 .messages {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem 1.5rem 0.75rem;
+  padding: 1rem 1.5rem 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  scroll-behavior: smooth;
+  gap: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.inputZone {
+  position: relative;
+  z-index: 1;
+  padding: 0.5rem 1.5rem 1rem;
 }

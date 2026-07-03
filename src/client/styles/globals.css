@@ -1,67 +1,54 @@
 :root {
-  /* Surfaces */
-  --bg: #0a0a0f;
-  --surface: #12121a;
-  --surface-2: #1a1a26;
-  --surface-3: #22222e;
+  /* ── Surfaces ── */
+  --bg: #08080b;
+  --bg-elevated: #0e0e14;
+  --surface: #131319;
+  --surface-hover: #1a1a22;
+  --surface-active: #21212b;
 
-  /* Accents */
-  --accent: #7c3aed;
-  --accent-2: #ec4899;
-  --accent-hover: #6d28d9;
+  /* ── Accent ── */
+  --accent: #8b5cf6;
+  --accent-glow: rgba(139, 92, 246, 0.35);
+  --accent-soft: rgba(139, 92, 246, 0.12);
+  --accent-2: #6366f1;
 
-  /* Text */
-  --text: #e8e8f0;
-  --text-dim: #6b6b80;
-  --text-muted: #4a4a5e;
+  /* ── Text ── */
+  --text: #f4f4f8;
+  --text-secondary: #a1a1b5;
+  --text-tertiary: #5c5c70;
 
-  /* Borders */
-  --border: #1e1e2e;
-  --border-light: #2a2a3a;
+  /* ── Borders ── */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.1);
 
-  /* Status */
+  /* ── Status ── */
   --danger: #ef4444;
+  --success: #22c55e;
 
-  /* Fonts */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-  --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  /* ── Misc ── */
+  --radius: 0.75rem;
+  --radius-lg: 1.25rem;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-html,
-body {
-  height: 100%;
-  overflow: hidden;
-}
+html, body { height: 100%; overflow: hidden; }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font);
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-light);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
+/* Selection */
+::selection { background: var(--accent-soft); }
