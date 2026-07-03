@@ -6,12 +6,10 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 const REGION = process.env.HARNESS_REGION || 'eu-north-1';
-const HARNESS_ARN = process.env.HARNESS_ARN!;
+const HARNESS_ARN = process.env.HARNESS_ARN || '';
 const MODEL_ID = process.env.BEDROCK_MODEL_ID || 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0';
 
 function getClient() {
-  // Amplify WEB_COMPUTE provides AWS_REGION and credentials via env vars
-  // The SDK auto-resolves credentials from the default chain
   return new BedrockAgentCoreClient({ region: REGION });
 }
 
@@ -20,13 +18,14 @@ export async function POST(req: NextRequest) {
   const { messages, sessionId } = body;
 
   if (!messages || !Array.isArray(messages)) {
-    return new Response(JSON.stringify({ error: 'messages array required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return Response.json({ error: 'messages array required' }, { status: 400 });
   }
 
-  // Map to HarnessMessage format
+  // Debug: log env var state (redacted)
+  console.log('HARNESS_ARN present:', !!HARNESS_ARN, 'length:', HARNESS_ARN.length);
+  console.log('REGION:', REGION);
+  console.log('MODEL_ID:', MODEL_ID);
+
   const harnessMessages = messages.map((m: { role: string; content: string }) => ({
     role: (m.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
     content: [{ text: m.content }],
@@ -34,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   const sid = sessionId || crypto.randomUUID();
 
-  const command = new InvokeHarnessCommand({
+  const commandInput = {
     harnessArn: HARNESS_ARN,
     runtimeSessionId: sid,
     messages: harnessMessages,
@@ -43,7 +42,9 @@ export async function POST(req: NextRequest) {
         modelId: MODEL_ID,
       },
     },
-  });
+  };
+
+  console.log('Command input harnessArn:', commandInput.harnessArn);
 
   const encoder = new TextEncoder();
 
@@ -51,9 +52,11 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       try {
         const client = getClient();
+        const command = new InvokeHarnessCommand(commandInput);
+        console.log('Command created, sending...');
         const response = await client.send(command);
+        console.log('Response received');
 
-        // response.stream is an AsyncIterable
         for await (const event of response.stream) {
           if (event.contentBlockDelta) {
             const delta = event.contentBlockDelta.delta;
@@ -73,10 +76,16 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Unknown error';
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ type: 'error', message: msg })}\n\n`)
-        );
+        console.error('Harness invoke error:', err);
+        const msg = err instanceof Error ? err.message : String(err);
+        // Include more detail for debugging
+        const detail = JSON.stringify({
+          type: 'error',
+          message: msg,
+          harnessArnPresent: !!HARNESS_ARN,
+          region: REGION,
+        });
+        controller.enqueue(encoder.encode(`data: ${detail}\n\n`));
       }
 
       controller.enqueue(encoder.encode('data: [DONE]\n\n'));
