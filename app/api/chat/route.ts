@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       },
     },
     systemPrompt: [
-      { text: 'You are a helpful, concise AI assistant. Answer questions directly and honestly. Do not invent context about the user\'s intentions or projects. If you don\'t know something, say so.' },
+      { text: 'You are a helpful, concise AI assistant. Answer questions directly and honestly. Never mention AWS, DynamoDB, telecom, or tables unless the user specifically asks about them. Do not invent context about the user\'s projects or intentions.' },
     ],
   });
 
