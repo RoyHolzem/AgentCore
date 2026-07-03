@@ -7,7 +7,7 @@ export const maxDuration = 60;
 
 const REGION = process.env.HARNESS_REGION || 'eu-north-1';
 const HARNESS_ARN = process.env.HARNESS_ARN || '';
-const MODEL_ID = process.env.BEDROCK_MODEL_ID || 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0';
+const MODEL_ID = process.env.BEDROCK_MODEL_ID || 'eu.amazon.nova-pro-v1:0';
 
 function getClient() {
   return new BedrockAgentCoreClient({ region: REGION });
@@ -21,11 +21,6 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'messages array required' }, { status: 400 });
   }
 
-  // Debug: log env var state (redacted)
-  console.log('HARNESS_ARN present:', !!HARNESS_ARN, 'length:', HARNESS_ARN.length);
-  console.log('REGION:', REGION);
-  console.log('MODEL_ID:', MODEL_ID);
-
   const harnessMessages = messages.map((m: { role: string; content: string }) => ({
     role: (m.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
     content: [{ text: m.content }],
@@ -33,7 +28,7 @@ export async function POST(req: NextRequest) {
 
   const sid = sessionId || crypto.randomUUID();
 
-  const commandInput = {
+  const command = new InvokeHarnessCommand({
     harnessArn: HARNESS_ARN,
     runtimeSessionId: sid,
     messages: harnessMessages,
@@ -42,9 +37,7 @@ export async function POST(req: NextRequest) {
         modelId: MODEL_ID,
       },
     },
-  };
-
-  console.log('Command input harnessArn:', commandInput.harnessArn);
+  });
 
   const encoder = new TextEncoder();
 
@@ -52,10 +45,7 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       try {
         const client = getClient();
-        const command = new InvokeHarnessCommand(commandInput);
-        console.log('Command created, sending...');
         const response = await client.send(command);
-        console.log('Response received');
 
         for await (const event of response.stream) {
           if (event.contentBlockDelta) {
@@ -76,16 +66,10 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (err) {
-        console.error('Harness invoke error:', err);
         const msg = err instanceof Error ? err.message : String(err);
-        // Include more detail for debugging
-        const detail = JSON.stringify({
-          type: 'error',
-          message: msg,
-          harnessArnPresent: !!HARNESS_ARN,
-          region: REGION,
-        });
-        controller.enqueue(encoder.encode(`data: ${detail}\n\n`));
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ type: 'error', message: msg })}\n\n`)
+        );
       }
 
       controller.enqueue(encoder.encode('data: [DONE]\n\n'));
